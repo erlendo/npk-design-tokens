@@ -1,5 +1,5 @@
 /*
- * NPK design tokens — single source of truth for Norsk Pointerklubb's
+ * NPK design tokens — single source of truth for Norsk Pointerklub's
  * shared visual identity across pointerdatabasen.pointer.no and
  * pointervercsan.vercel.app (NPK's marketing site).
  *
@@ -20,7 +20,7 @@
 :root {
   /* Brand colors */
   --npk-blue: #233b63;
-  --npk-blue-hover: #1a2c4a;
+  --npk-blue-hover: #1e3356;
   --npk-green: #445b45;
   --npk-offwhite: #f7f5f1;
   --npk-soft: #e5e3de;

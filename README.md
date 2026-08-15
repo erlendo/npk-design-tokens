@@ -1,7 +1,7 @@
 # npk-design-tokens
 
 Delt kilde til sannhet for de rå merkevare-verdiene (farge, hjørne-form, typografi)
-som brukes av Norsk Pointerklubbs to digitale flater:
+som brukes av Norsk Pointerklubs to digitale flater:
 
 - **pointerdatabasen.pointer.no** (`/Users/erlendo/Pointerdatabasen`) — datasøk/admin-verktøy, Next.js + Tailwind, egen fullere semantisk token-utvidelse i `src/app/globals.css` (surface-muted, dark mode, osv.)
 - **pointervercsan.vercel.app** (`/Users/erlendo/pointervercsan`) — klubbens markedsføringsside, Astro + Tailwind, tokens i `src/styles/global.css`
@@ -68,7 +68,7 @@ konsumerer fortsatt via manuell kopiering:
 | Token | Verdi | Bruk |
 |---|---|---|
 | `--npk-blue` | `#233b63` | Primærfarge (CTA-knapper, lenker, aktive filtre) |
-| `--npk-blue-hover` | `#1a2c4a` | Hover/aktiv-tilstand for primærfarge |
+| `--npk-blue-hover` | `#1e3356` | Hover/aktiv-tilstand for primærfarge |
 | `--npk-green` | `#445b45` | Sekundær aksentfarge |
 | `--npk-offwhite` | `#f7f5f1` | Sidebakgrunn (lys modus) |
 | `--npk-soft` | `#e5e3de` | Myk kant/skille-farge |
