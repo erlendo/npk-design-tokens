@@ -1,0 +1,52 @@
+/*
+ * NPK design tokens — single source of truth for Norsk Pointerklubb's
+ * shared visual identity across pointerdatabasen.pointer.no and
+ * pointervercsan.vercel.app (NPK's marketing site).
+ *
+ * Source of truth for these values: pointervercsan/src/styles/global.css
+ * (the club's primary brand surface). Pointerdatabasen extends this into
+ * a fuller semantic token system (surface-muted, surface-info, dark mode,
+ * etc.) — those extensions live in Pointerdatabasen's own globals.css and
+ * are NOT duplicated here. This file holds only the raw brand primitives:
+ * color, shape, and font choices that both sites must agree on.
+ *
+ * Consumption (v1, no package registry set up yet — see README.md):
+ * copy this file's values by hand into each site's own token file when it
+ * changes, and note the source commit in the copying site's changelog/doc.
+ * Do not edit these values independently in either consuming repo —
+ * change them here first.
+ */
+
+:root {
+  /* Brand colors */
+  --npk-blue: #233b63;
+  --npk-blue-hover: #1a2c4a;
+  --npk-green: #445b45;
+  --npk-offwhite: #f7f5f1;
+  --npk-soft: #e5e3de;
+  --npk-copper: #b46a3c;
+  --npk-text: #1f2937;
+
+  /* Shape: sharp 90° corners everywhere, no exceptions.
+   * Discovered 2026-08-14: pointervercsan's own .npk-btn button system is
+   * defined with border-radius: 0, but one specific instance (the header
+   * "Bli medlem" CTA in BaseLayout.astro) had a stray `rounded-full`
+   * utility class bolted on in the markup — an inconsistency bug, not a
+   * deliberate "pill CTA" design language. Both sites should treat
+   * border-radius: 0 as universal, with the only legitimate exception
+   * being genuinely circular elements (avatars, status dots, toggle
+   * switches) which are circles by function, not "rounded rectangles". */
+  --npk-radius: 0px;
+
+  /* Typography.
+   * Body/UI text: a clean humanist sans. pointervercsan uses Inter;
+   * Pointerdatabasen uses IBM Plex Sans (next/font/google) — these are
+   * stylistically close enough that no font swap is warranted; keep each
+   * site's existing sans, just make sure it's used at similar weights.
+   * Display: pointervercsan uses Libre Baskerville (serif) ONLY for its
+   * homepage hero H1 — every other heading (H2/H3, nav, buttons) is the
+   * regular sans at weight 600. This is a single deliberate accent, not
+   * a system-wide display font. Do not apply --npk-font-display broadly. */
+  --npk-font-body: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
+  --npk-font-display: 'Libre Baskerville', serif;
+}
