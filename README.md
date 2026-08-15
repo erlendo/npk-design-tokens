@@ -6,6 +6,23 @@ som brukes av Norsk Pointerklubbs to digitale flater:
 - **pointerdatabasen.pointer.no** (`/Users/erlendo/Pointerdatabasen`) — datasøk/admin-verktøy, Next.js + Tailwind, egen fullere semantisk token-utvidelse i `src/app/globals.css` (surface-muted, dark mode, osv.)
 - **pointervercsan.vercel.app** (`/Users/erlendo/pointervercsan`) — klubbens markedsføringsside, Astro + Tailwind, tokens i `src/styles/global.css`
 
+## ⚠️ Dette repoet er OFFENTLIG — aldri legg hemmeligheter her
+
+Gjort offentlig 2026-08-14 for at Pointerdatabasens `npm install` skal kunne
+klone dette repoet direkte fra Vercels byggmiljø (Vercel har ikke SSH-tilgang
+til andre private repoer enn det som faktisk deployes — bekreftet ved en
+mislykket test med `git@github.com: Permission denied (publickey)` da repoet
+var privat). Siden det er offentlig, gjelder følgende **uten unntak**:
+
+- Aldri commit API-nøkler, tokens, `.env`-filer, Supabase/Sanity-hemmeligheter,
+  interne URL-er med tilgangsnøkler, eller annen sensitiv informasjon her.
+- Dette repoet skal KUN inneholde rå, ikke-sensitive design-primitiver
+  (fargekoder, radius-verdier, font-navn) — akkurat slik det er i dag.
+- Hvis noe sensitivt noensinne havner her ved en feil: fjern det med en gang,
+  rotér eventuelle eksponerte nøkler (en fjernet commit er fortsatt synlig i
+  git-historikken til noen har rewritet den), og vurder om repoet må roteres
+  helt (nytt repo, gammelt slettet) i stedet for å stole på historikk-opprydding.
+
 ## Hvorfor dette repoet finnes
 
 Se ADR-001 (i Pointerdatabasen sin samtalehistorikk/CODEX.md, 2026-08-14): fargepalett, hjørne-radius
@@ -25,21 +42,26 @@ sammenligne seg mot.
   De hører hjemme i hver enkelt sides egen `globals.css`, siden Pointerdatabasen
   har behov (mørk modus, tett admin-UI) som pointervercsan ikke har.
 
-## Konsumering (v1 — ingen pakkeregister satt opp ennå)
+## Konsumering
 
-Ingen automatisk `npm install`-kobling foreløpig. Når verdier her endres:
+**Pointerdatabasen** har en reell npm git-avhengighet mot dette repoet:
+`"npk-design-tokens": "github:erlendo/npk-design-tokens#v0.1.0"` i
+`package.json`, og `@import "npk-design-tokens/tokens.css";` øverst i
+`src/app/globals.css`. Dette FORUTSETTER at repoet er offentlig - en
+git-avhengighet mot et privat repo feiler i Vercels byggmiljø med
+`Permission denied (publickey)` siden Vercel ikke autoriserer SSH mot andre
+repoer enn det som deployes (bekreftet med en reell testdeploy 2026-08-14,
+se commit-historikk). Ikke gjør repoet privat igjen uten samtidig å bytte
+konsumeringsmetode (f.eks. et faktisk npm-pakkeregister eller en
+token-basert HTTPS-løsning i et preinstall-script).
 
-1. Oppdater `tokens.css`/`tokens.json` i dette repoet, commit med en beskrivende melding.
-2. Kopier de endrede verdiene manuelt inn i:
-   - Pointerdatabasen: `src/app/globals.css` (`:root`/`.dark`-blokkene)
-   - pointervercsan: `src/styles/global.css` (`:root`-blokken)
-3. Referer til commit-SHA fra dette repoet i commit-meldingen på den konsumerende siden, slik at det er sporbart hvilken token-versjon som er i bruk.
+**pointervercsan** har foreløpig IKKE en tilsvarende npm-avhengighet - den
+konsumerer fortsatt via manuell kopiering:
 
-Fremtidig forbedring (se ADR action items): pakke dette som en reell
-avhengighet (npm/git-dependency) slik at steg 2 blir automatisk ved
-`npm install` + versjonsbump, i stedet for manuell kopiering. Ikke gjort ennå
-fordi det krever et valg om pakkeregister/git-dependency-autentisering i
-Vercel-bygg som ikke er tatt.
+1. Oppdater `tokens.css`/`tokens.json` i dette repoet, commit med en beskrivende melding, og tagg en ny versjon (`git tag vX.Y.Z && git push origin vX.Y.Z`) hvis Pointerdatabasen skal peke på den nye verdien.
+2. Kopier de endrede verdiene manuelt inn i pointervercsan sin `src/styles/global.css` (`:root`-blokken).
+3. Bump versjonstaggen i Pointerdatabasens `package.json` og kjør `npm install` der, slik at begge sider peker på samme faktiske innhold.
+4. Referer til commit-SHA/tag fra dette repoet i commit-meldingen på den konsumerende siden, slik at det er sporbart hvilken token-versjon som er i bruk.
 
 ## Tokens
 
