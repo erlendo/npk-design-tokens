@@ -63,6 +63,22 @@ konsumerer fortsatt via manuell kopiering:
 3. Bump versjonstaggen i Pointerdatabasens `package.json` og kjør `npm install` der, slik at begge sider peker på samme faktiske innhold.
 4. Referer til commit-SHA/tag fra dette repoet i commit-meldingen på den konsumerende siden, slik at det er sporbart hvilken token-versjon som er i bruk.
 
+## Drift-varsel (GitHub Action)
+
+`.github/workflows/drift-check.yml` sjekker automatisk (ved ny tag, ukentlig,
+eller manuelt via "Run workflow") om Pointerdatabasen eller pointervercsan
+peker på en eldre tag enn den nyeste her, og oppretter et GitHub Issue i
+dette repoet hvis noen henger etter - i stedet for at versjonene stille
+driver fra hverandre igjen.
+
+**Krever manuelt oppsett (kan ikke gjøres av en agent):** legg til en GitHub
+Personal Access Token (classic, scope `repo`) som repo-secret
+`CROSS_REPO_TOKEN` her (Settings → Secrets and variables → Actions → New
+repository secret). Uten denne secreten logger workflowen bare en advarsel
+og avslutter grønt - ingen falsk alarm, men heller ingen reell sjekk før
+secreten er lagt til. Standard `GITHUB_TOKEN` i Actions er kun scoped til
+repoet det kjører i, og kan ikke lese de private konsument-repoene.
+
 ## Tokens
 
 | Token | Verdi | Bruk |

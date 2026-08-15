@@ -1,0 +1,98 @@
+name: Token version drift check
+
+# Varsler (via GitHub Issue) hvis en konsument (Pointerdatabasen eller
+# pointervercsan) peker på en eldre tag av npk-design-tokens enn den
+# nyeste - i stedet for å drifte stille, slik som skjedde internt i
+# pointervercsan (tailwind.css vs. global.css) før dette repoet fantes.
+#
+# Krever secrets.CROSS_REPO_TOKEN: en GitHub Personal Access Token
+# (classic, scope "repo") som har lesetilgang til de private
+# konsument-repoene erlendo/pointerdatabasen-v2 og erlendo/pointervercsan.
+# Standard GITHUB_TOKEN i denne workflowen er kun scoped til DETTE
+# repoet, og kan ikke lese andre private repoer.
+#
+# Hvis secreten ikke er satt: jobben logger en tydelig advarsel og
+# avslutter grønt (ikke rødt) - ingen falsk alarm, men heller ikke en
+# reell drift-sjekk før secreten er lagt til manuelt i repo-settings
+# (Settings -> Secrets and variables -> Actions).
+
+on:
+  push:
+    tags:
+      - "v*"
+  schedule:
+    - cron: "0 6 * * 1" # hver mandag kl 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk om CROSS_REPO_TOKEN er satt
+        id: check-token
+        run: |
+          if [ -z "${{ secrets.CROSS_REPO_TOKEN }}" ]; then
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Advar hvis secret mangler (avslutter grønt)
+        if: steps.check-token.outputs.has_token == 'false'
+        run: |
+          echo "::warning::CROSS_REPO_TOKEN er ikke satt - kan ikke lese de private konsument-repoene. Legg til en PAT (scope: repo) som repo-secret 'CROSS_REPO_TOKEN' for at drift-sjekken skal virke. Se kommentar øverst i denne workflow-filen."
+
+      - name: Hent siste tag i dette repoet
+        if: steps.check-token.outputs.has_token == 'true'
+        id: latest-tag
+        env:
+          GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
+        run: |
+          LATEST=$(gh api repos/erlendo/npk-design-tokens/tags --jq '.[0].name')
+          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Siste tag: $LATEST"
+
+      - name: Sjekk konsument-repoer mot siste tag
+        if: steps.check-token.outputs.has_token == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
+          LATEST_TAG: ${{ steps.latest-tag.outputs.tag }}
+        run: |
+          set -e
+          DRIFTED=""
+
+          for repo in erlendo/pointerdatabasen-v2 erlendo/pointervercsan; do
+            PKG=$(gh api "repos/$repo/contents/package.json" --jq '.content' | base64 -d)
+            REF=$(echo "$PKG" | grep -o '"npk-design-tokens": *"github:erlendo/npk-design-tokens#[^"]*"' | grep -o '#v[0-9.]*' | tr -d '#')
+            echo "$repo peker på: ${REF:-<ingen avhengighet funnet>}"
+            if [ "$REF" != "$LATEST_TAG" ]; then
+              DRIFTED="$DRIFTED\n- **$repo** peker på \`${REF:-ingen}\`, nyeste tag er \`$LATEST_TAG\`"
+            fi
+          done
+
+          if [ -n "$DRIFTED" ]; then
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            printf "%b" "$DRIFTED" > drift-body.md
+          else
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          fi
+        id: drift
+
+      - name: Opprett issue hvis drift oppdaget
+        if: steps.check-token.outputs.has_token == 'true' && steps.drift.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
+        run: |
+          TITLE="Token-versjon driftet - konsument(er) henger etter siste tag"
+          BODY="Følgende repoer bruker ikke siste tag av npk-design-tokens:\n\n$(cat drift-body.md)\n\nOppdater \"npk-design-tokens\"-avhengigheten i package.json og kjør \`npm install npk-design-tokens\` i det/de aktuelle repoet."
+          # Unngå duplikate åpne issues for samme drift
+          EXISTING=$(gh issue list --repo erlendo/npk-design-tokens --search "$TITLE in:title" --state open --json number --jq '. | length')
+          if [ "$EXISTING" = "0" ]; then
+            printf "%b" "$BODY" | gh issue create --repo erlendo/npk-design-tokens --title "$TITLE" --body-file -
+          else
+            echo "Åpent issue finnes allerede - oppretter ikke duplikat."
+          fi
